@@ -173,7 +173,7 @@ export default function RangeCalendar({
                   ? 'ring-2 ring-blue-300 bg-blue-100'
                   : avail
                   ? 'hover:bg-white/50'
-                  : 'opacity-100 cursor-not-allowed bg-red-300'
+                  : 'cursor-not-allowed bg-red-200'
               )}
               aria-disabled={!avail}
               aria-pressed={isSelected}
