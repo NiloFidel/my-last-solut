@@ -5,14 +5,14 @@ import { useEffect, useState } from 'react';
 import clsx from 'clsx';
 
 export interface DaySlot {
-  date: string;
+  date: string;       // fecha ISO (YYYY-MM-DD)
   slotsUsed: number;
   slotsFree: number;
   available: boolean;
 }
 
 interface Props {
-  servicio: string;
+  servicio: string;        // '1' | '2' | … | '7'
   horario: string;
   selectedDate: string;
   onSelect(date: string): void;
@@ -57,7 +57,12 @@ export default function RangeCalendar({
 
     (async () => {
       try {
-        const params = new URLSearchParams({ servicio, horario, start: todayISO, end: endISO });
+        const params = new URLSearchParams({
+          servicio,       // p.ej. '1'
+          horario,        // p.ej. '14:00 - 15:00'
+          start: todayISO,
+          end: endISO,
+        });
         const res = await fetch(`/api/calendar-range?${params}`);
         if (!res.ok) throw new Error(`Status ${res.status}`);
         const json = await res.json();
@@ -77,7 +82,7 @@ export default function RangeCalendar({
     })();
   }, [servicio, horario, todayISO, endISO, refreshKey]);
 
-  // 3) Si la fecha actualmente seleccionada ya no está disponible, saltar a la siguiente disponible
+  // 3) Si la fecha seleccionada ya no está disponible, saltar a la siguiente disponible
   useEffect(() => {
     if (loading || error) return;
     if (!days.length) return;
@@ -87,7 +92,6 @@ export default function RangeCalendar({
     const [hStart] = horario.split(' - ');
     const [sh, sm] = hStart.split(':').map(Number);
 
-    // Verificar si selectedDate sigue disponible
     let currentIsAvailable = false;
     for (const d of days) {
       let avail = d.available;
@@ -104,7 +108,6 @@ export default function RangeCalendar({
     }
 
     if (!currentIsAvailable) {
-      // Buscar primer día disponible
       const next = days.find((d) => {
         let avail = d.available;
         if (
@@ -122,53 +125,69 @@ export default function RangeCalendar({
   }, [days, selectedDate, horario, todayISO, loading, error, onSelect]);
 
   if (!todayISO) return null;
-  if (loading) return <p className="text-center">Cargando…</p>;
+  if (loading) return <p className="text-center text-gray-600">Cargando…</p>;
   if (error) return <p className="text-center text-red-500">{error}</p>;
 
-  // 4) Renderizado del calendario: marcar cada día según disponibilidad
+  // 4) Renderizado del calendario: marcamos cada día según disponibilidad y mostramos "Jue 5 Jun 2 cupos"
   const offsetMin = -5 * 60;
   const limaNow = new Date(new Date().getTime() + (new Date().getTimezoneOffset() + offsetMin) * 60000);
   const [hStart] = horario.split(' - ');
   const [sh, sm] = hStart.split(':').map(Number);
 
   return (
-    <div className="grid grid-cols-7 gap-2">
-      {days.map((d) => {
-        const isToday = d.date === todayISO;
-        let avail = d.available;
-        if (isToday && (limaNow.getHours() > sh || (limaNow.getHours() === sh && limaNow.getMinutes() >= sm))) {
-          avail = false;
-        }
+    <div className="overflow-x-auto">
+      <div className="grid grid-cols-7 gap-0.5 w-full p-0.5">
+        {days.map((d) => {
+          const isToday = d.date === todayISO;
+          let avail = d.available;
+          if (
+            isToday &&
+            (limaNow.getHours() > sh || (limaNow.getHours() === sh && limaNow.getMinutes() >= sm))
+          ) {
+            avail = false;
+          }
 
-        const [year, month, day] = d.date.split('-').map(Number);
-        const dt = new Date(year, month - 1, day);
-        const monthLetter = dt.toLocaleDateString('es-ES', { month: 'short' });
-        const dayNum = dt.getDate();
-        const weekday = dt.toLocaleDateString('es-ES', { weekday: 'short' });
+          // Parsear fecha sin generar NaN
+          const [yearStr, monthStr, dayStr] = d.date.split('-');
+          const year = parseInt(yearStr, 10);
+          const month = parseInt(monthStr, 10);
+          const day = parseInt(dayStr, 10);
+          const dt = new Date(
+            isNaN(year) ? 0 : year,
+            isNaN(month) ? 0 : month - 1,
+            isNaN(day) ? 1 : day
+          );
+          const monthLetter = dt.toLocaleDateString('es-ES', { month: 'short' }) || '';
+          const dayNum = !isNaN(dt.getDate()) ? dt.getDate() : 0;
+          const weekday = dt.toLocaleDateString('es-ES', { weekday: 'short' }) || '';
 
-        const isSelected = d.date === selectedDate;
+          const isSelected = d.date === selectedDate;
 
-        return (
-          <button
-            key={d.date}
-            onClick={() => avail && onSelect(d.date)}
-            className={clsx(
-              'flex flex-col items-center p-2 rounded-lg border',
-              isSelected
-                ? 'bg-teal-600 text-white border-teal-700'
-                : avail
-                ? 'bg-teal-100 hover:shadow focus:ring-2 focus:ring-teal-400 border-teal-200'
-                : 'bg-red-500 opacity-75 cursor-not-allowed border-red-600'
-            )}
-            aria-disabled={!avail}
-            aria-pressed={isSelected}
-          >
-            <span className="font-bold text-xs capitalize text-blue-700">{weekday}</span>
-            <span className="font-bold text-lg">{dayNum}</span>
-            <span className="text-xs capitalize">{monthLetter}</span>
-          </button>
-        );
-      })}
+          return (
+            <button
+              key={d.date}  // único: YYYY-MM-DD
+              onClick={() => avail && onSelect(d.date)}
+              className={clsx(
+                'flex flex-col items-center justify-center p-3 w-full rounded-xl border border-white/40 backdrop-blur-md bg-white/30 shadow-sm',
+                isSelected
+                  ? 'ring-2 ring-blue-300 bg-blue-100'
+                  : avail
+                  ? 'hover:bg-white/50'
+                  : 'opacity-100 cursor-not-allowed bg-red-200'
+              )}
+              aria-disabled={!avail}
+              aria-pressed={isSelected}
+            >
+              <span className="font-semibold text-sm text-blue-800 capitalize">{weekday}</span>
+              <span className="font-bold text-2xl text-gray-800">{dayNum || ''}</span>
+              <span className="text-sm text-gray-600 capitalize">{monthLetter}</span>
+              {/* <span className="mt-1 text-sm text-gray-700">
+                {avail ? `${d.slotsFree} cupos` : '—'}
+              </span> */}
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

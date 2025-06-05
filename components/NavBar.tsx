@@ -3,7 +3,6 @@
 
 import Link from 'next/link';
 import { useState } from 'react';
-//import clsx from 'clsx';
 
 const NAV_ITEMS = [
   { label: 'Inicio', href: '/' },
@@ -15,11 +14,11 @@ export default function NavBar() {
   const [open, setOpen] = useState(false);
 
   return (
-    <nav className="fixed top-0 left-0 right-0 bg-teal-600 text-white h-16 z-50">
+    <nav className="fixed top-0 left-0 right-0 bg-white/100 backdrop-blur-md shadow-md h-16 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
         {/* Logo / Título */}
         <Link href="/">
-          <span className="font-bold text-xl">eDuque</span>
+          <span className="font-bold text-2xl text-blue-700">eDuque</span>
         </Link>
 
         {/* Menú escritorio */}
@@ -28,7 +27,7 @@ export default function NavBar() {
             <Link
               key={item.href}
               href={item.href}
-              className="hover:underline focus:outline-none focus:ring-2 focus:ring-white rounded"
+              className="text-blue-600 hover:text-blue-800 font-medium"
             >
               {item.label}
             </Link>
@@ -41,7 +40,7 @@ export default function NavBar() {
             onClick={() => setOpen(!open)}
             aria-label="Menú"
             aria-expanded={open}
-            className="focus:outline-none focus:ring-2 focus:ring-white rounded"
+            className="text-blue-600 hover:text-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-400 rounded"
           >
             <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               {open ? (
@@ -56,12 +55,12 @@ export default function NavBar() {
 
       {/* Menú móvil desplegable */}
       {open && (
-        <div className="md:hidden bg-teal-700">
+        <div className="md:hidden bg-white/100 backdrop-blur-md border-t border-blue-100">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className="block px-4 py-2 hover:bg-teal-500 focus:bg-teal-500 focus:outline-none"
+              className="block px-4 py-3 hover:bg-blue-100 text-blue-700 font-bold"
               onClick={() => setOpen(false)}
             >
               {item.label}

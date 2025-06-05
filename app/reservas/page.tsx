@@ -7,14 +7,15 @@ import clsx from 'clsx';
 
 const RangeCalendar = dynamic(() => import('@/components/RangeCalendar'), { ssr: false });
 
+// Definimos cada servicio con id y label
 const LANGUAGES = [
-  'Matemáticas y Todo Números',
-  'Lenguaje y Todo Letras',
-  'Historia, Geografía y Sociales',
-  'Practiquemos Alemán',
-  'Practiquemos Inglés',
-  'Practiquemos Quechua',
-  'Hablemos de Business',
+  { id: '1', label: 'Matemáticas y Todo Números' },
+  { id: '2', label: 'Lenguaje y Todo Letras' },
+  { id: '3', label: 'Historia, Geografía y Sociales' },
+  { id: '4', label: 'Practiquemos Alemán' },
+  { id: '5', label: 'Practiquemos Inglés' },
+  { id: '6', label: 'Practiquemos Quechua' },
+  { id: '7', label: 'Hablemos de Business' },
 ];
 
 const TIME_SLOTS = [
@@ -30,15 +31,15 @@ const TIME_SLOTS = [
 
 interface UserInfo {
   fullName: string;
-  age: string;
-  email: string;
-  city: string;
+  age: string;      // label="Edad"
+  email: string;    // label="Correo"
+  city: string;     // label="Ciudad"
 }
 
 export default function ReservationForm() {
   const [startISO, setStartISO] = useState<string>('');
   const [defaultSlot, setDefaultSlot] = useState<string>(TIME_SLOTS[0]);
-  const [language, setLanguage] = useState<string>(LANGUAGES[0]);
+  const [languageId, setLanguageId] = useState<string>(LANGUAGES[0].id);
   const [selectedDate, setSelectedDate] = useState<string>('');
   const [selectedSlot, setSelectedSlot] = useState<string>('');
   const [user, setUser] = useState<UserInfo>({ fullName: '', age: '', email: '', city: '' });
@@ -62,14 +63,16 @@ export default function ReservationForm() {
     // Determinar primer slot disponible hoy
     const slot = TIME_SLOTS.find((s) => {
       const [h, m] = s.split(' - ')[0].split(':').map(Number);
-      return limaNow.getHours() < h || (limaNow.getHours() === h && limaNow.getMinutes() < m);
+      return (
+        limaNow.getHours() < h || (limaNow.getHours() === h && limaNow.getMinutes() < m)
+      );
     }) || TIME_SLOTS[TIME_SLOTS.length - 1];
 
     setDefaultSlot(slot);
     setSelectedSlot(slot);
   }, []);
 
-  // 2) Cuando cambian startISO o defaultSlot → reset de fecha y slot (al recargar página)
+  // 2) Cuando cambian startISO o defaultSlot → reset de fecha y slot
   useEffect(() => {
     setSelectedDate(startISO);
     setSelectedSlot(defaultSlot);
@@ -84,10 +87,12 @@ export default function ReservationForm() {
     setStatus(null);
 
     // Validación básica de campos
-    if (!language || !selectedDate || !selectedSlot) {
+    if (!languageId || !selectedDate || !selectedSlot) {
       return setStatus({ type: 'error', message: 'Completa fecha, servicio y horario.' });
     }
-    const missing = (Object.entries(user) as [keyof UserInfo, string][]).filter(([, v]) => !v);
+    const missing = (Object.entries(user) as [keyof UserInfo, string][]).filter(
+      ([, v]) => !v
+    );
     if (missing.length) {
       return setStatus({ type: 'error', message: 'Completa todos tus datos.' });
     }
@@ -104,7 +109,7 @@ export default function ReservationForm() {
 
       const payload = {
         clientToken: user.email,
-        servicio: language,
+        servicio: languageId,          // aquí enviamos el ID numérico
         horario: selectedSlot,
         date: selectedDate,
         usuario: user,
@@ -128,7 +133,6 @@ export default function ReservationForm() {
 
       // Limpiar formulario de usuario (pero no cambiamos servicio ni fecha)
       setUser({ fullName: '', age: '', email: '', city: '' });
-
     } catch (err: unknown) {
       const error = err instanceof Error ? err : new Error(String(err));
       setStatus({ type: 'error', message: error.message });
@@ -143,52 +147,56 @@ export default function ReservationForm() {
 
   return (
     <>
-      <div className="lg:flex lg:space-x-8 space-y-8 lg:space-y-0">
+      <div className="lg:flex lg:space-x-8 space-y-8 lg:space-y-0 my-8">
         {/* Lado izquierdo: selección de servicio/horario/fecha */}
-        <section className="flex-1 bg-white p-6 rounded-lg shadow space-y-6">
-          <h2 className="text-2xl font-bold">Reservar Clase</h2>
+        <section className="flex-1 px-4 py-1 rounded-2xl bg-white/30 backdrop-blur-md border border-white/40 shadow-lg space-y-6">
+          <h2 className="text-3xl font-extrabold text-blue-700">Reservar Clase</h2>
           <div>
-            <label htmlFor="servicio" className="font-bold block mb-2">
+            <label htmlFor="servicio" className="font-bold text-blue-800 block mb-2">
               Servicio:
             </label>
             <select
               id="servicio"
-              value={language}
-              onChange={(e) => setLanguage(e.target.value)}
-              className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-teal-400"
+              value={languageId}
+              onChange={(e) => setLanguageId(e.target.value)}
+              className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white/50 backdrop-blur-sm"
             >
               {LANGUAGES.map((lang) => (
-                <option key={lang}>{lang}</option>
+                <option key={lang.id} value={lang.id}>
+                  {lang.label}
+                </option>
               ))}
             </select>
           </div>
 
           <div>
-            <label className="font-bold block mb-2">Horario:</label>
-            <div className="flex flex-wrap gap-2">
-              {TIME_SLOTS.map((slot) => {
+            <label className="font-bold text-blue-800 block mb-2">Horario:</label>
+            <div className="flex flex-wrap gap-3">
+              {TIME_SLOTS.map((slot, idx) => {
                 const [h, m] = slot.split(' - ')[0].split(':').map(Number);
                 const offsetMin = -5 * 60;
                 const limaNow = new Date(
-                  new Date().getTime() + (new Date().getTimezoneOffset() + offsetMin) * 60000
+                  new Date().getTime() +
+                    (new Date().getTimezoneOffset() + offsetMin) * 60000
                 );
                 const disabled =
                   selectedDate === startISO &&
-                  (limaNow.getHours() > h || (limaNow.getHours() === h && limaNow.getMinutes() >= m));
+                  (limaNow.getHours() > h ||
+                    (limaNow.getHours() === h && limaNow.getMinutes() >= m));
 
                 return (
                   <button
-                    key={slot}
+                    key={idx}
                     type="button"
                     disabled={disabled}
                     onClick={() => setSelectedSlot(slot)}
                     className={clsx(
-                      'px-4 py-2 rounded focus:outline-none focus:ring-2 focus:ring-teal-400',
+                      'px-5 py-2 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-blue-400',
                       disabled
-                        ? 'bg-gray-200 cursor-not-allowed'
+                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                         : selectedSlot === slot
-                        ? 'bg-teal-600 text-white'
-                        : 'bg-gray-100 hover:bg-gray-200'
+                        ? 'bg-blue-400 text-white'
+                        : 'bg-white/50 backdrop-blur-sm text-gray-800 hover:bg-white/70'
                     )}
                   >
                     {slot}
@@ -199,9 +207,9 @@ export default function ReservationForm() {
           </div>
 
           <div>
-            <label className="font-bold block mb-2">Selecciona Fecha:</label>
+            <label className="font-bold text-blue-800 block mb-2">Selecciona Fecha:</label>
             <RangeCalendar
-              servicio={language}
+              servicio={languageId}
               horario={selectedSlot}
               selectedDate={selectedDate}
               onSelect={setSelectedDate}
@@ -211,41 +219,82 @@ export default function ReservationForm() {
         </section>
 
         {/* Lado derecho: formulario de datos del usuario */}
-        <form onSubmit={handleSubmit} className="lg:w-1/2 bg-white p-6 rounded-lg shadow space-y-4">
-          <h2 className="text-2xl font-bold">Tus Datos</h2>
-          {(['fullName', 'age', 'email', 'city'] as const).map((field) => (
-            <div key={field}>
-              <label htmlFor={field} className="block mb-1 capitalize">
-                {field === 'fullName' ? 'Nombre completo' : field}
-              </label>
+        <section className="lg:w-1/2 px-4 py-1 rounded-2xl bg-white/30 backdrop-blur-md border border-white/40 shadow-lg">
+          <h2 className="text-3xl font-extrabold text-blue-700 mb-4">Tus Datos Personales</h2>
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div>
+              <label htmlFor="fullName" className="block mb-1 text-gray-800">Nombre completo</label>
               <input
-                id={field}
-                type={field === 'email' ? 'email' : 'text'}
-                value={user[field]}
-                onChange={(e) => setUser((u) => ({ ...u, [field]: e.target.value }))}
-                className="w-full border rounded p-2 focus:outline-none focus:ring-2 focus:ring-teal-400"
+                id="fullName"
+                type="text"
+                value={user.fullName}
+                onChange={(e) =>
+                  setUser((u) => ({ ...u, fullName: e.target.value }))
+                }
+                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white/50 backdrop-blur-sm"
               />
             </div>
-          ))}
 
-          <button
-            type="submit"
-            className="w-full bg-teal-600 text-white p-3 rounded hover:bg-teal-700 transition focus:outline-none focus:ring-2 focus:ring-teal-400"
-          >
-            Reservar
-          </button>
+            <div>
+              <label htmlFor="age" className="block mb-1 text-gray-800">Edad</label>
+              <input
+                id="age"
+                type="text"
+                value={user.age}
+                onChange={(e) =>
+                  setUser((u) => ({ ...u, age: e.target.value }))
+                }
+                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white/50 backdrop-blur-sm"
+              />
+            </div>
 
-          {status && (
-            <p
-              className={clsx(
-                'mt-4 p-2 rounded',
-                status.type === 'error' ? 'bg-red-100 text-red-700' : 'bg-green-100 text-green-700'
-              )}
+            <div>
+              <label htmlFor="email" className="block mb-1 text-gray-800">Correo</label>
+              <input
+                id="email"
+                type="email"
+                value={user.email}
+                onChange={(e) =>
+                  setUser((u) => ({ ...u, email: e.target.value }))
+                }
+                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white/50 backdrop-blur-sm"
+              />
+            </div>
+
+            <div>
+              <label htmlFor="city" className="block mb-1 text-gray-800">Ciudad</label>
+              <input
+                id="city"
+                type="text"
+                value={user.city}
+                onChange={(e) =>
+                  setUser((u) => ({ ...u, city: e.target.value }))
+                }
+                className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-400 bg-white/50 backdrop-blur-sm"
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="w-full py-3 bg-blue-400 text-white font-semibold rounded-full shadow-md hover:bg-blue-500 transition focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
-              {status.message}
-            </p>
-          )}
-        </form>
+              Reservar
+            </button>
+
+            {status && (
+              <p
+                className={clsx(
+                  'mt-4 p-3 rounded-lg',
+                  status.type === 'error'
+                    ? 'bg-red-100 text-red-700'
+                    : 'bg-green-100 text-green-700'
+                )}
+              >
+                {status.message}
+              </p>
+            )}
+          </form>
+        </section>
       </div>
 
       {/* Modal de confirmación */}
@@ -253,18 +302,17 @@ export default function ReservationForm() {
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
         >
-          <div className="bg-white rounded-2xl p-6 max-w-sm text-center">
-            <h3 className="text-xl font-bold mb-4">¡Reserva Confirmada!</h3>
-            <p className="mb-6">
-              Estimado/a {bookedName}, tu reserva ha sido confirmada. En tu correo encontrarás la información 
-              sobre tu reserva, incluido el link de la clase.
-              ¡Nos vemos pronto!
+          <div className="bg-white/50 backdrop-blur-md rounded-2xl p-6 max-w-sm text-center border border-white/30 shadow-lg">
+            <h3 className="text-2xl font-bold text-blue-700 mb-4">¡Reserva Confirmada!</h3>
+            <p className="mb-6 text-gray-800">
+              Gracias <span className="font-semibold">{bookedName}</span>, tu reserva ha sido confirmada. En tu correo encontrarás el link
+              de la reunión. ¡Nos vemos pronto!
             </p>
             <button
               onClick={handleCloseModal}
-              className="bg-teal-600 text-white px-4 py-2 rounded-full hover:bg-teal-700 transition focus:outline-none focus:ring-2 focus:ring-teal-400"
+              className="px-6 py-2 bg-blue-400 text-white rounded-full hover:bg-blue-500 transition focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
               Cerrar
             </button>
