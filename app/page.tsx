@@ -6,9 +6,9 @@ import Link from 'next/link';
 export default function LandingPage() {
   return (
     <section className="text-center py-20">
-      <h1 className="text-4xl font-bold mb-6">Bienvenido a EduApp</h1>
+      <h1 className="text-4xl font-bold mb-6">Bienvenido a eDuque</h1>
       <p className="text-lg mb-8">
-        Reserva tu clase de idiomas y practica Inglés, Alemán o Quechua con nuestros expertos.
+        Reserva tu clase de acompañamiento de la PRE, el COLE y temas PARTICULARES, practicas de idiomas y temas BUSINESS.
         ¡Aprende de forma fácil y divertida!
       </p>
       <Link href="/reservas">

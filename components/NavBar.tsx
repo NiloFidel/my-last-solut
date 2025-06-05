@@ -19,7 +19,7 @@ export default function NavBar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center justify-between">
         {/* Logo / Título */}
         <Link href="/">
-          <span className="font-bold text-xl">EduApp</span>
+          <span className="font-bold text-xl">eDuque</span>
         </Link>
 
         {/* Menú escritorio */}

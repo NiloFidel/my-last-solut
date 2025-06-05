@@ -258,8 +258,8 @@ export default function ReservationForm() {
           <div className="bg-white rounded-2xl p-6 max-w-sm text-center">
             <h3 className="text-xl font-bold mb-4">¡Reserva Confirmada!</h3>
             <p className="mb-6">
-              Estimado/a {bookedName}, tu reserva ha sido confirmada. En tu correo encontrarás la información
-              completa de tu reserva incluido el link de la clase.
+              Estimado/a {bookedName}, tu reserva ha sido confirmada. En tu correo encontrarás la información 
+              sobre tu reserva, incluido el link de la clase.
               ¡Nos vemos pronto!
             </p>
             <button

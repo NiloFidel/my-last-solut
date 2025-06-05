@@ -3,8 +3,8 @@ import './globals.css';
 import NavBar from '@/components/NavBar';
 
 export const metadata = {
-  title: 'EduApp - Reservas',
-  description: 'Reserva tus clases de idiomas',
+  title: 'eLearning - eDuque',
+  description: 'Reserva tus clases de aprendizaje continuo',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
