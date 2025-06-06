@@ -171,7 +171,7 @@ export default function ReservationForm() {
 
           <div>
             <label className="font-bold text-blue-800 block mb-2">Horario:</label>
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2">
               {TIME_SLOTS.map((slot, idx) => {
                 const [h, m] = slot.split(' - ')[0].split(':').map(Number);
                 const offsetMin = -5 * 60;
@@ -191,7 +191,7 @@ export default function ReservationForm() {
                     disabled={disabled}
                     onClick={() => setSelectedSlot(slot)}
                     className={clsx(
-                      'px-5 py-2 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-blue-400',
+                      'px-2 py-2 rounded-lg font-medium focus:outline-none focus:ring-2 focus:ring-blue-400',
                       disabled
                         ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                         : selectedSlot === slot
