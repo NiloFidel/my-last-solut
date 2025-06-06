@@ -13,7 +13,7 @@ export interface DaySlot {
 
 interface Props {
   servicio: string;        // '1' | '2' | … | '7'
-  horario: string;
+  horario: string;         // p. ej. '14:00 - 15:00'
   selectedDate: string;
   onSelect(date: string): void;
   refreshKey: number;
@@ -58,8 +58,8 @@ export default function RangeCalendar({
     (async () => {
       try {
         const params = new URLSearchParams({
-          servicio,       // p.ej. '1'
-          horario,        // p.ej. '14:00 - 15:00'
+          servicio,
+          horario,
           start: todayISO,
           end: endISO,
         });
@@ -128,7 +128,7 @@ export default function RangeCalendar({
   if (loading) return <p className="text-center text-gray-600">Cargando…</p>;
   if (error) return <p className="text-center text-red-500">{error}</p>;
 
-  // 4) Renderizado del calendario: marcamos cada día según disponibilidad y mostramos "Jue 5 Jun 2 cupos"
+  // 4) Renderizado del calendario
   const offsetMin = -5 * 60;
   const limaNow = new Date(new Date().getTime() + (new Date().getTimezoneOffset() + offsetMin) * 60000);
   const [hStart] = horario.split(' - ');
@@ -136,7 +136,7 @@ export default function RangeCalendar({
 
   return (
     <div className="overflow-x-auto">
-      <div className="grid grid-cols-7 gap-0.5 w-full p-0.5">
+      <div className="grid grid-cols-7 gap-1 w-full p-1">
         {days.map((d) => {
           const isToday = d.date === todayISO;
           let avail = d.available;
@@ -147,7 +147,7 @@ export default function RangeCalendar({
             avail = false;
           }
 
-          // Parsear fecha sin generar NaN
+          // Parsear fecha
           const [yearStr, monthStr, dayStr] = d.date.split('-');
           const year = parseInt(yearStr, 10);
           const month = parseInt(monthStr, 10);
@@ -163,17 +163,21 @@ export default function RangeCalendar({
 
           const isSelected = d.date === selectedDate;
 
+          // Elijo un solo fondo según el estado:
+          const backgroundClass = isSelected
+            ? 'bg-blue-100 ring-2 ring-blue-300'
+            : avail
+            ? 'bg-white/30 hover:bg-white/50'
+            : 'bg-red-200';
+
           return (
             <button
               key={d.date}  // único: YYYY-MM-DD
               onClick={() => avail && onSelect(d.date)}
               className={clsx(
-                'flex flex-col items-center justify-center p-3 w-full rounded-xl border border-white/40 backdrop-blur-md bg-white/30 shadow-sm',
-                isSelected
-                  ? 'ring-2 ring-blue-300 bg-blue-100'
-                  : avail
-                  ? 'hover:bg-white/50'
-                  : 'cursor-not-allowed bg-red-200'
+                'flex flex-col items-center justify-center p-4 w-full rounded-xl border border-white/40 backdrop-blur-md shadow-sm',
+                backgroundClass,
+                !avail && 'cursor-not-allowed'
               )}
               aria-disabled={!avail}
               aria-pressed={isSelected}
@@ -181,9 +185,9 @@ export default function RangeCalendar({
               <span className="font-semibold text-sm text-blue-800 capitalize">{weekday}</span>
               <span className="font-bold text-2xl text-gray-800">{dayNum || ''}</span>
               <span className="text-sm text-gray-600 capitalize">{monthLetter}</span>
-              {/* <span className="mt-1 text-sm text-gray-700">
+              <span className="mt-1 text-sm text-gray-700">
                 {avail ? `${d.slotsFree} cupos` : '—'}
-              </span> */}
+              </span>
             </button>
           );
         })}
