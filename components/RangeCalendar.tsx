@@ -185,9 +185,9 @@ export default function RangeCalendar({
               <span className="font-semibold text-sm text-blue-800 capitalize">{weekday}</span>
               <span className="font-bold text-2xl text-gray-800">{dayNum || ''}</span>
               <span className="text-sm text-gray-600 capitalize">{monthLetter}</span>
-              <span className="mt-1 text-sm text-gray-700">
+              {/* <span className="mt-1 text-sm text-gray-700">
                 {avail ? `${d.slotsFree} cupos` : '—'}
-              </span>
+              </span> */}
             </button>
           );
         })}
